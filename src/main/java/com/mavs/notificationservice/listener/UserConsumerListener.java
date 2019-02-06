@@ -7,6 +7,7 @@ import com.mavs.activity.dto.ActivityUserDto;
 import com.mavs.activity.service.ActivityService;
 import com.mavs.activity.util.ActivityUtil;
 import com.mavs.notificationservice.event.UserRegisteredEvent;
+import com.mavs.notificationservice.model.NotificationActivity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
@@ -36,7 +37,7 @@ public class UserConsumerListener {
     public void onReceive(@Payload String jsonObject) {
         transformJsonObject(jsonObject).ifPresent(activityDto ->
                 ActivityUtil.convertToActivity(activityDto).ifPresent(activity -> {
-                    activityService.save(activity);
+                    activityService.save(new NotificationActivity(activity));
                     eventPublisher.publishEvent(new UserRegisteredEvent(activity));
                 }));
     }

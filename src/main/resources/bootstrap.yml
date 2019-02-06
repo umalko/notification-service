@@ -9,3 +9,6 @@ spring:
     password: 123qweQWE
     properties.mail.smtp.auth: true
     properties.mail.smtp.starttls.enable: true
+  data:
+    mongodb:
+      database: notifications
