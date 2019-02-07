@@ -1,34 +1,29 @@
-package com.mavs.notificationservice.listener;
+package com.mavs.notificationservice.listener.consumer;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mavs.activity.dto.ActivityDto;
-import com.mavs.activity.dto.ActivityUserDto;
+import com.mavs.activity.dto.BaseActivityDto;
 import com.mavs.activity.service.ActivityService;
 import com.mavs.activity.util.ActivityUtil;
-import com.mavs.notificationservice.event.UserRegisteredEvent;
+import com.mavs.notificationservice.event.NotificationEvent;
 import com.mavs.notificationservice.model.NotificationActivity;
+import com.mavs.notificationservice.model.NotificationType;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.handler.annotation.Payload;
 
 import java.io.IOException;
 import java.util.Optional;
 
 @Slf4j
-@EnableRabbit
-@Configuration
-@RabbitListener(queues = "USER_QUEUE")
-public class UserConsumerListener {
+public abstract class AbstractConsumerListener<T extends BaseActivityDto> {
 
     private final ActivityService activityService;
     private final ApplicationEventPublisher eventPublisher;
 
-    public UserConsumerListener(ActivityService activityService, ApplicationEventPublisher eventPublisher) {
+    protected AbstractConsumerListener(ActivityService activityService, ApplicationEventPublisher eventPublisher) {
         this.activityService = activityService;
         this.eventPublisher = eventPublisher;
     }
@@ -38,14 +33,14 @@ public class UserConsumerListener {
         transformJsonObject(jsonObject).ifPresent(activityDto ->
                 ActivityUtil.convertToActivity(activityDto).ifPresent(activity -> {
                     activityService.save(new NotificationActivity(activity));
-                    eventPublisher.publishEvent(new UserRegisteredEvent(activity));
+                    eventPublisher.publishEvent(new NotificationEvent(activity, getNotificationType()));
                 }));
     }
 
-    private Optional<ActivityDto<ActivityUserDto>> transformJsonObject(String jsonObject) {
+    private Optional<ActivityDto<T>> transformJsonObject(String jsonObject) {
         try {
-            ActivityDto<ActivityUserDto> activityDto = new ObjectMapper().readValue(jsonObject,
-                    new TypeReference<ActivityDto<ActivityUserDto>>() {
+            ActivityDto<T> activityDto = new ObjectMapper().readValue(jsonObject,
+                    new TypeReference<ActivityDto<T>>() {
                     });
             log.info("Activity object comes to Notification Service: {}", activityDto);
             return Optional.of(activityDto);
@@ -54,4 +49,6 @@ public class UserConsumerListener {
         }
         return Optional.empty();
     }
+
+    protected abstract NotificationType getNotificationType();
 }
