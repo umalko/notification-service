@@ -1,5 +1,7 @@
 package com.mavs.notificationservice.listener.consumer;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.mavs.activity.dto.ActivityDto;
 import com.mavs.activity.dto.ActivityRelationshipDto;
 import com.mavs.activity.service.ActivityService;
 import com.mavs.notificationservice.model.NotificationType;
@@ -22,5 +24,10 @@ public class EndRelationshipConsumerListener extends AbstractConsumerListener<Ac
     @Override
     protected NotificationType getNotificationType() {
         return NotificationType.END_RELATIONSHIP;
+    }
+
+    @Override
+    protected TypeReference getTypeReferenceOfActivityDto() {
+        return new TypeReference<ActivityDto<ActivityRelationshipDto>>() {};
     }
 }

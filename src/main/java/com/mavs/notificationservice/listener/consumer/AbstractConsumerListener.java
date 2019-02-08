@@ -39,9 +39,7 @@ public abstract class AbstractConsumerListener<T extends BaseActivityDto> {
 
     private Optional<ActivityDto<T>> transformJsonObject(String jsonObject) {
         try {
-            ActivityDto<T> activityDto = new ObjectMapper().readValue(jsonObject,
-                    new TypeReference<ActivityDto<T>>() {
-                    });
+            ActivityDto<T> activityDto = new ObjectMapper().readValue(jsonObject, getTypeReferenceOfActivityDto());
             log.info("Activity object comes to Notification Service: {}", activityDto);
             return Optional.of(activityDto);
         } catch (IOException e) {
@@ -51,4 +49,6 @@ public abstract class AbstractConsumerListener<T extends BaseActivityDto> {
     }
 
     protected abstract NotificationType getNotificationType();
+
+    protected abstract TypeReference getTypeReferenceOfActivityDto();
 }
